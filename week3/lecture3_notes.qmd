@@ -1,0 +1,64 @@
+---
+title: "lecture notes"
+date: "01-22-2024"
+format: html
+---
+
+# Lecture 3.1 Choosing the right graphic form
+
+- **Mapping**: how values of a variable of interest is represented by visuals (e.g. heigh of bar)
+
+###Hierarchy of elemental perceptual tasks
+
+- ranks how easily we can perceive values from length, area, color, volume, etc.
+
+- Caveats:
+  - only statistical charts were considered
+  - lower scale methods (area, shade, hue) can be appropriate when goal is to reveal general patterns. Especially in maps (think chloropleth)!
+  - no method is perfect--think critically about purpose of the graphic and how best to serve that purpose
+  
+###Tips for choosing the right graphic form
+
+1. think about the tasks you want to enable or message you want to convey
+2. consider number of variables and data points plus data types
+3. try different graphic forms
+4. arrange graphic components
+5. test outcome
+
+### Critiquing data viz
+
+1. identify primary and secondary insights that the graphic is trying to convey
+2. identify elementary perceptual tasks and what is confusing or difficult to do
+3. identify if it's possible (and makes sense) to use more effective elementary perceptual tasks for the primary and secondary insights
+4. identify points of confusion and decide how those could be addressed (e.g rearranging, better annotation, etc.)
+
+
+# Lecture 3.2 Visualizing distributions
+
+visualizing spread of numeric variable
+
+Core types:
+- histograms, density, ridgeline, violin, box plots
+
+**Histograms show us the counts of values in each range (bin) represented by height of the bars. Desnity plots show the proportion of values in each range (area under curve = 1; peaks indicate where more values are concentrated, ut it does not tell us anything about the number of observations)**
+
+Ridgeline Plots
+
+- show distribution of a numeric variable for multiple groups
+- works best when you have >6 groups
+
+Boxplots
+
+- *summarizes* the distribution of a numeric variable for one or several groups
+- can't see underlying shape of the distribution or sample size
+- add jittered points on top, or if large sample size, consider a violin plot
+
+Violin Plots
+
+- distribution of a numeric variable for one or several groups
+- ordering by median value can make easier to understand
+- show sample size when comparing groups with very different distributions
+
+# Lecture 3.3 Visualizing evolution
+
+visualizing the change in a numeric variable over some unit of time

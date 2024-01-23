@@ -1,0 +1,47 @@
+---
+title: "Lecutre 3.3"
+---
+
+## setup
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(janitor)
+library(gghighlight)
+
+source(here::here("week3", "KEYS.R"))
+census_api_key(censusKEY)
+
+lyme <- read_csv(here::here("week3", "data", "LD-Case-Counts-by-County-01-20.csv"))
+```
+## wrangle
+```{r}
+# lyme data----
+lyme_clean <- lyme %>% 
+  clean_names() %>% 
+  rename(county = ctyname, state = stname, status = ststatus) %>% 
+  pivot_longer(cols = 6:25, 
+               names_to = "county_year",
+               values_to = "reported_cases") %>% 
+  mutate(year = str_remove(county_year, pattern = "cases"),
+         year = as.factor(year))
+
+# calculate cases by state ----
+lyme_by_state <- lyme_clean %>% 
+  group_by(year, state) %>% 
+  summarize(total_cases = sum(reported_cases))
+
+
+# grab population data ----
+us_state_pop <- get_estimates(geography = "state",
+                              product = "population",
+                              year = 2019) %>% 
+  filter(variable == "POP") %>% 
+  select(state = NAME, population = value)
+
+# join data ----
+lyme_pop <- left_join(lyme_by_state, us_state_pop) %>% 
+  mutate(pop100k = population/100000) %>% 
+  mutate(cases_per100k = total_cases/pop100k)
+```
+
