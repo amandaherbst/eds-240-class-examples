@@ -45,3 +45,89 @@ lyme_pop <- left_join(lyme_by_state, us_state_pop) %>%
   mutate(cases_per100k = total_cases/pop100k)
 ```
 
+## line plot
+
+```{r}
+# highlight one group ----
+lyme_pop %>% 
+  filter(year %in% c(2010:2020)) %>% 
+  ggplot(aes(x = year, 
+             y = cases_per100k, 
+             group = state, 
+             color = state)) +
+  geom_line() +
+  gghighlight::gghighlight(state == "New Jersey")
+
+
+# highlight based on a conditional ----
+lyme_pop %>% 
+  filter(year %in% c(2010:2020)) %>% 
+  ggplot(aes(x = year, 
+             y = cases_per100k, 
+             group = state, 
+             color = state)) +
+  geom_line() +
+  gghighlight::gghighlight(max(cases_per100k) > 100)
+```
+Line graphs encode data by position and not length, therefore, you can choose to include the 0 origin only if it makes sense. 
+
+- Do *not* start the y-axis at 0 if the range of data is small but the distance from the bottom of the range to zero is large.
+- Do not start the y-axis at 0 if the relationship to zero is insignificant.
+  - ex: human body temperature change over time
+  
+### Aspect ratio
+
+**Aspect ratio**: height:width ratio of a graph. Manipulating aspect ratio can mislead readers, so do so carefully.
+
+```{r}
+lyme_pop %>% 
+  filter(year %in% c(2010:2020)) %>% 
+  filter(state == "Vermont") %>% 
+  ggplot(aes(x = year, y = cases_per100k, group = state)) +
+  geom_line() +
+  #scale_y_continuous(breaks = seq(0,190, by = 1)) +
+  # change aspect ratio of plot
+  coord_fixed(ratio = 1/50)
+```
+## Area plots
+
+```{r}
+# area chart one group ----
+lyme_pop %>% 
+  filter(year %in% c(2010:2020)) %>% 
+  filter(state == "Rhode Island") %>% 
+  ggplot(aes(x = year, y = cases_per100k, group = state, fill = state)) +
+  geom_area() +
+  scale_fill_manual(values = c("aquamarine")) +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0,0))
+  theme(legend.position = "none") +
+  labs(title = "Cases of Lyme disease in Rhode Island")
+  
+# stacked area chart ----
+lyme_pop %>% 
+  filter(year %in% c(2010:2020)) %>% 
+  filter(state %in% c("Maine", "Rhode Island", "New Hampshire", "Vermont")) %>% 
+  ggplot(aes(x = year, y = cases_per100k, group = state, fill = state)) +
+  geom_area()
+## cannot see absolute values, but top line shows sum of all groups
+  
+# proportional stacked area chart ----
+lyme_pop %>% 
+  filter(year %in% c(2010:2020)) %>% 
+  filter(state %in% c("Maine", "Rhode Island", "New Hampshire", "Vermont")) %>% 
+  ggplot(aes(x = year, y = cases_per100k, group = state, fill = state)) +
+  geom_area(position = "fill") +
+  scale_y_continuous(label = scales::label_percent(scale = 100))
+  
+# line chart version
+lyme_pop |> 
+  filter(year %in% c(2010:2020)) |> 
+  filter(state %in% c("Maine", "Rhode Island", "New Hampshire", "Vermont")) |> 
+  ggplot(aes(x = year, y = cases_per100k, group = state, color = state)) +
+  geom_line() +
+  facet_wrap(~state)
+```
+**Plot most important group on bottom so you can read the y-axis**
+
+- to reverse order of states: `geom_area(position = position_fill(reverse = TRUE))`
