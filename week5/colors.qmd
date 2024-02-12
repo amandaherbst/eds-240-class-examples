@@ -310,3 +310,55 @@ base_map <- ggplot(joined_precip_geom) +
 base_map
 ```
 
+### Classed or unclassed color scale?
+
+Classed (binned): if want to communicate statistical brackets
+
+Unclassed (continuous): show general patterns
+
+**start process with unclassed map always**
+
+### Unclassed map
+
+```{r}
+# color palette ----
+RColorBrewer::display.brewer.pal(n = 11, name = "BrBG")
+my_brew_palette11 <- RColorBrewer::brewer.pal(n = 11, name = "BrBG")
+
+# make map ----
+base_map +
+  scale_fill_gradientn(colors = my_brew_palette11,
+                       # add percent symbols after numbers on gradient legend
+                       labels = scales::label_percent(scale = 1),
+                       # add more tick marks to gradient legend
+                       breaks = scales::breaks_width(width = 10),
+                       # rescale so that 0 = white color
+                       values = scales::rescale(x = c(
+                         min(na.omit(joined_precip_geom)$perc_change),
+                         0,
+                         max(na.omit(joined_precip_geom)$perc_change)
+                       ))) +
+  guides(fill = guide_colorbar(barwidth = 15, barheight = 0.75))
+
+```
+
+### Classed map
+
+```{r}
+RColorBrewer::display.brewer.pal(n = 10, name = "BrBG")
+my_brew_palette10 <- RColorBrewer::brewer.pal(n = 10, name = "BrBG")
+
+# create map ----
+
+base_map +
+  scale_fill_stepsn(colors = my_brew_palette10,
+                    labels = scales::label_percent(scale = 1),
+                    breaks = scales::breaks_width(width = 5),
+                     values = scales::rescale(x = c(
+                         min(na.omit(joined_precip_geom)$perc_change),
+                         0,
+                         max(na.omit(joined_precip_geom)$perc_change)
+                       ))) +
+  guides(fill = guide_colorsteps(barwidth = 25, barheight = 0.75))
+```
+
