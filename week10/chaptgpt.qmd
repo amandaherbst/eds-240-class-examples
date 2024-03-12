@@ -1,0 +1,128 @@
+---
+title: "data wrangling w/ ChatGPT"
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+biotech_unedited <- read_csv(here::here("week10", "data", "ChatGPT_Practice_Dataset.csv"))
+```
+
+# Prompt 1
+
+## Didn't work
+```{r}
+# Transpose the dataset
+transposed_data <- t(biotech_unedited)
+
+# Convert to a data frame
+transposed_df <- as.data.frame(transposed_data, stringsAsFactors = FALSE)
+
+# Get the first row as column names
+colnames(transposed_df) <- transposed_df[1, ]
+
+# Remove the first row (since it's now the column names)
+transposed_df <- transposed_df[-1, ]
+
+# Convert the first row to a data frame
+column_names <- as.data.frame(t(as.matrix(transposed_df[1, ])))
+
+# Combine with the transposed dataset
+transposed_df <- transposed_df[-1, ]
+
+# Set column names
+colnames(transposed_df) <- NULL
+
+# Combine column names and transposed data
+combined_data <- bind_cols(column_names, transposed_df)
+
+# Convert to a tibble
+combined_data <- as_tibble(combined_data)
+
+# Pivot wider
+cleaned_data <- combined_data %>%
+  pivot_wider(names_from = UniqueLabel, values_from = c(Name, Position, State, Salary, Years_Worked, Performance_Last_Year, Performance_2_Years_Ago))
+
+```
+
+## works!
+
+What was helpful: Instead of trying to upload full dataset, just copied and pasted the head of biotech_unedited and told I wanted to separate by ","
+
+```{r}
+# Assuming your data frame is called biotech_unedited
+biotech_split <- separate(biotech_unedited, col = "UniqueLabel,Name,Position,State,Salary,Years_Worked,Performance_Last_Year,Performance_2_Years_Ago", sep = ",", into = c("UniqueLabel", "Name", "Position", "State", "Salary", "Years_Worked", "Performance_Last_Year", "Performance_2_Years_Ago"))
+
+# Print the first few rows of the resulting data frame
+head(biotech_split)
+```
+
+Figure out what employees to lay off
+- factors to consider: Performance, salary, position
+
+```{r}
+# average performance
+biotech_split <- biotech_split %>%
+  mutate(Performance_Last_Year = as.numeric(Performance_Last_Year),
+         Performance_2_Years_Ago = as.numeric(Performance_2_Years_Ago),
+         Salary = as.numeric(Salary),
+         Years_Worked = as.numeric(Years_Worked),
+         Average_Performance = (Performance_Last_Year + Performance_2_Years_Ago)/2)
+
+head(biotech_split)
+
+labels_to_remove <- c("Employee_38", "Employee_4", "Employee_22")
+# Remove rows with specified labels
+biotech_df_byebye <- biotech_split[!biotech_split$Name %in% labels_to_remove, ]
+# Show the resulting data frame
+View(biotech_df_byebye)
+
+```
+
+# Scenario 2
+
+```{r}
+position_avg_salary <- biotech_split %>%
+  group_by(Position) %>%
+  summarize(Average_Salary = mean(Salary))%>%
+  mutate(Position = factor(Position, levels = Position[order(Average_Salary, decreasing = TRUE)]))
+
+
+# Plotting average salaries for each position with error bars
+ggplot(position_avg_salary, aes(x = Position, y = Average_Salary)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+ # geom_errorbar(aes(ymin = Average_Salary - sd(Salary), ymax = Average_Salary + sd(Salary)), width = 0.2, color = "black") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Average Salary by Position",
+       x = "Position",
+       y = "Average Salary") +
+  coord_flip()
+
+# boxplot
+ggplot(biotech_split, aes(x = Position, y = Salary)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Salary Distribution by Position",
+       x = "Position",
+       y = "Salary") +
+  coord_flip()
+
+# run ANOVA test
+# Assuming your data frame is called biotech_split
+# And you have already calculated position_avg_salary with the average salary for each position
+
+# Fit the ANOVA model
+anova_result <- aov(Salary ~ Position, data = biotech_split)
+
+# Print the ANOVA table
+print(summary(anova_result))
+
+# Perform Tukey's HSD test for pairwise comparisons
+tukey_result <- TukeyHSD(anova_result)
+
+# Print the results
+print(tukey_result)
+```
+None of these are significantly different positions
